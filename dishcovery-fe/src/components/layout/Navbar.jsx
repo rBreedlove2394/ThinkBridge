@@ -30,7 +30,7 @@ export const Navbar = () => {
             {/* Left: Logo */}
             <div className="navbar-left">
                 <div className="logo-pill">
-                    <img src={Logo} alt="Dishcovery Logo" className="logo-img" />
+                    <img src={Logo} alt="Dishcovery Logo" className="nav-logo" />
                 </div>
             </div>
 

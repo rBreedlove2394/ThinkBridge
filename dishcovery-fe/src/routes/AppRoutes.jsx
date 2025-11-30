@@ -9,7 +9,6 @@ import { LoginContainer } from '../containers/LoginContainer';
 import { SearchContainer } from '../containers/SearchContainer';
 import { RecipeContainer } from "../containers/RecipeContainer";
 import { CookingStepsPage } from "../pages/CookingStepsPage";
-import { MOCK_RECIPES } from '../mock/recipes';
 import { GuidedCookingPage } from '../pages/GuidedCookingPage';
 import { FaqPage } from '../pages/FaqPage';
 import { ProfileContainer } from '../containers/ProfileContainer';
@@ -26,8 +25,8 @@ export const AppRoutes = () => (
     <Route path="/login" element={<LoginContainer />} />
     <Route path="/search" element={<SearchContainer />} />
     <Route path="/recipe/:id" element={<RecipeContainer />} />
-    <Route path="/recipe/:id/steps" element={<CookingStepsPage recipes={MOCK_RECIPES} />} />
-    <Route path="/recipe/:id/guided" element={<GuidedCookingPage recipes={MOCK_RECIPES} />} />
+    <Route path="/recipe/:id/steps" element={<CookingStepsPage  />} />
+    <Route path="/recipe/:id/guided" element={<GuidedCookingPage />} />
     <Route path="/faq" element={<FaqPage />} />
     <Route path="/profile" element={<ProfileContainer />} />
     <Route path="/contact" element={<ContactContainer />} />

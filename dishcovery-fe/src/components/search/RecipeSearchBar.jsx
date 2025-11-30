@@ -19,8 +19,8 @@ export const RecipeSearchBar = ({
   };
 
   return (
-    <section className="recipe-search">
-      <div className="recipe-search-inner">
+    <section className="recipe-search" >
+      <div className="recipe-search-inner" style={{border: '2px solid #000000', borderRadius: '25px', padding: '4px 8px', display: 'flex', alignItems: 'center'}}>
         <input
           type="text"
           className="recipe-search-input"
@@ -35,6 +35,13 @@ export const RecipeSearchBar = ({
           className="recipe-search-icon"
           onClick={handleSearch}
           aria-label="Search"
+          style={{
+    background: "none",
+    border: "none",
+    padding: 0,
+    fontSize: "22px",
+    cursor: "pointer",
+  }}
         >
           {/* replace with your SVG search icon if you have one */}
           🔍

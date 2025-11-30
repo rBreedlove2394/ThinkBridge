@@ -1,9 +1,9 @@
 // src/pages/SearchPage.jsx
-import React from 'react';
-import { SmartFilter } from '../components/filters/SmartFilter';
-import { RecipeSearchBar } from '../components/search/RecipeSearchBar';
-import { RecipeCard } from '../components/recipes/RecipeCard';
-import { Loader } from '../components/common/Loader'; // you already have this
+import React from "react";
+import { SmartFilter } from "../components/filters/SmartFilter";
+import { RecipeSearchBar } from "../components/search/RecipeSearchBar";
+import { RecipeCard } from "../components/recipes/RecipeCard";
+import { Loader } from "../components/common/Loader";
 
 export const SearchPage = ({
   onApplyFilters,
@@ -11,10 +11,20 @@ export const SearchPage = ({
   onSearch,
   recipes,
   loading,
+  error,
 }) => {
   return (
     <div className="search-page">
-      {/* Filters */}
+      <section className="search-hero">
+        <h1 className="search-title">Find your next dish</h1>
+        <p className="search-subtitle">
+          Search by recipe name, ingredient, cuisine, or filter by dietary
+          preferences and time.
+        </p>
+
+        <RecipeSearchBar onSearch={onSearch} />
+      </section>
+
       <section className="search-filters">
         <SmartFilter
           onApply={onApplyFilters}
@@ -22,25 +32,24 @@ export const SearchPage = ({
         />
       </section>
 
-      {/* Search bar */}
-      <section className="search-bar-section">
-        <RecipeSearchBar onSearch={onSearch} />
-      </section>
+      {error && (
+        <div className="error-banner">
+          {error}
+        </div>
+      )}
 
-      {/* Results */}
       <section className="search-results">
-        {loading && <Loader />}
-
-        {!loading && recipes.length === 0 && (
-          <p className="search-empty-text">
-            Use the filters or search bar to explore recipes.
+        {loading ? (
+          <Loader />
+        ) : recipes.length === 0 ? (
+          <p className="search-empty">
+            No recipes yet. Try searching for something like “pasta” or “chicken”.
           </p>
-        )}
-
-        {!loading && recipes.length > 0 && (
+        ) : (
           <div className="recipe-grid">
             {recipes.map((recipe) => (
               <RecipeCard
+                key={recipe.id}
                 id={recipe.id}
                 title={recipe.title}
                 calories={recipe.calories}

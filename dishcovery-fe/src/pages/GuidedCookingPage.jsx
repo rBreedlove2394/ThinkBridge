@@ -1,13 +1,106 @@
 // src/pages/GuidedCookingPage.jsx
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getRecipeById } from "../api/spoonacularApi";
 
-export const GuidedCookingPage = ({ recipes = [] }) => {
+export const GuidedCookingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const recipe = recipes.find((r) => r.id === id);
 
-  // no recipe or no steps
+  const [recipe, setRecipe] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch recipe + steps
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchRecipe = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getRecipeById(id);
+        setRecipe(data);
+
+        if (data.steps && data.steps.length > 0) {
+          setCurrentIndex(0);
+          setSecondsLeft(data.steps[0].durationSeconds || 60);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(
+          err.message || "Something went wrong while loading guided mode."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipe();
+  }, [id]);
+
+  // Timer logic
+  useEffect(() => {
+    if (!recipe || !recipe.steps || recipe.steps.length === 0) return;
+
+    const currentStep = recipe.steps[currentIndex];
+    if (!currentStep) return;
+
+    if (secondsLeft <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [recipe, currentIndex, secondsLeft]);
+
+  const handleNextStep = () => {
+    if (!recipe || !recipe.steps) return;
+
+    if (currentIndex < recipe.steps.length - 1) {
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      setSecondsLeft(recipe.steps[nextIndex].durationSeconds || 60);
+    } else {
+      // finished
+      navigate(`/recipe/${id}`);
+    }
+  };
+
+  const formatTime = (totalSeconds) => {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="guided-page">
+        <p>Loading guided steps...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="guided-page">
+        <p className="error-text">{error}</p>
+        <button className="btn-primary" onClick={() => navigate(-1)}>
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
   if (!recipe || !Array.isArray(recipe.steps) || recipe.steps.length === 0) {
     return (
       <div className="guided-page">
@@ -16,73 +109,35 @@ export const GuidedCookingPage = ({ recipes = [] }) => {
     );
   }
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // default 5 min per step if no duration specified
-  const getInitialSeconds = (index) =>
-    recipe.steps[index]?.durationSeconds ?? 5 * 60;
-
-  const [secondsLeft, setSecondsLeft] = useState(getInitialSeconds(0));
-
-  // reset timer when step changes
-  useEffect(() => {
-    setSecondsLeft(getInitialSeconds(currentIndex));
-  }, [currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // countdown effect
-  useEffect(() => {
-    if (secondsLeft <= 0) return;
-
-    const intervalId = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [secondsLeft]);
-
   const step = recipe.steps[currentIndex];
-
-  const handleNextStep = () => {
-    if (currentIndex < recipe.steps.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      // last step -> redirect back to recipe page (or show "Done")
-      navigate(`/recipe/${id}`);
-    }
-  };
-
-  const formatTime = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(1, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${minutes} : ${seconds}`;
-  };
 
   return (
     <div className="guided-page">
-      <h1 className="guided-heading">Guided Cooking</h1>
+      <header className="guided-header">
+        <button className="btn-link" onClick={() => navigate(-1)}>
+          ← Back
+        </button>
+        <h1 className="guided-title">{recipe.title}</h1>
+        <p className="guided-subtitle">
+          Step {currentIndex + 1} of {recipe.steps.length}
+        </p>
+      </header>
 
-      <section className="guided-main">
-        {/* Left side: step title + instructions */}
+      <section className="guided-body">
         <div className="guided-left">
-          <h2 className="guided-step-title">
-            Step {currentIndex + 1}: {step.title}
-          </h2>
-
-          <ol className="guided-step-list">
-            {step.instructions.map((line, idx) => (
-              <li key={idx}>{line}</li>
+          <h2 className="guided-step-title">{step.title}</h2>
+          <ul className="guided-step-list">
+            {step.instructions.map((line, i) => (
+              <li key={i}>{line}</li>
             ))}
-          </ol>
+          </ul>
         </div>
 
-        {/* Right side: timer + button */}
         <div className="guided-right">
           <div className="guided-timer">{formatTime(secondsLeft)}</div>
 
           <button className="btn-dark guided-next-btn" onClick={handleNextStep}>
-            {currentIndex < recipe.steps.length - 1 ? 'Next step' : 'Finish'}
+            {currentIndex < recipe.steps.length - 1 ? "Next step" : "Finish"}
           </button>
         </div>
       </section>

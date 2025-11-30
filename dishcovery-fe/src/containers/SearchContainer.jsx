@@ -1,125 +1,107 @@
 // src/containers/SearchContainer.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { SearchPage } from '../pages/SearchPage';
+import { searchRecipesFromSpoonacular } from '../api/spoonacularApi';
 
-// Temporary mock data – replace imageUrl with your local assets later
-const MOCK_RECIPES = [
-  {
-    id: 'moroccan-lentil',
-    title: 'Moroccan Lentil Stew with Butternut Squash',
-    calories: 270,
-    imageUrl:
-      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-    cuisine: 'Middle Eastern',
-    dietary: ['Vegetarian'],
-    level: 'Intermediate',
-    time: '30–60 min',
-  },
-  {
-    id: 'sweet-potato-hash',
-    title: 'Sweet Potato Hash with Eggs',
-    calories: 285,
-    imageUrl:
-      'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&w=600&q=80',
-    cuisine: 'American',
-    dietary: ['Vegetarian'],
-    level: 'Beginner',
-    time: '15–30 min',
-  },
-  {
-    id: 'honey-spice-pears',
-    title: 'Honey and Spice Pears',
-    calories: 165,
-    imageUrl:
-      'https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=600&q=80',
-    cuisine: 'French',
-    dietary: ['Vegetarian'],
-    level: 'Beginner',
-    time: '< 15 min',
-  },
-  {
-    id: 'chicken-black-bean-tostadas',
-    title: 'Chicken and Black Bean Tostadas',
-    calories: 303,
-    imageUrl:
-      'https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    cuisine: 'Mexican',
-    dietary: ['Non-vegetarian'],
-    level: 'Intermediate',
-    time: '30–60 min',
-  },
-];
 
 export const SearchContainer = () => {
+  const [recipes, setRecipes] = useState([]);
   const [filters, setFilters] = useState({
-    cuisine: '',
-    dietary: '',
-    level: '',
-    time: '',
+    cuisine: "",
+    dietary: "",
+    level: "",
+    time: "",
   });
-  const [query, setQuery] = useState('');
-  const [recipes, setRecipes] = useState([]); // what we render
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [ingredients, setIngredients] = useState([]);
 
-  const applyAllFilters = (allRecipes, activeFilters, activeQuery) => {
-    let list = [...allRecipes];
+  const fetchRecipes = async (opts = {}) => {
+  const { query: q = query, filters: f = filters,ingredients:ingr =ingredients, } = opts;
 
-    // text search (title contains query)
-    if (activeQuery.trim()) {
-      const q = activeQuery.toLowerCase();
-      list = list.filter((r) => r.title.toLowerCase().includes(q));
-    }
+  try {
+    setLoading(true);
+    setError(null);
 
-    // cuisine filter
-    if (activeFilters.cuisine) {
-      list = list.filter(
-        (r) => r.cuisine === activeFilters.cuisine
-      );
-    }
+    const results = await searchRecipesFromSpoonacular({
+      query: q,          // can be empty string
+      cuisine: f.cuisine,
+      dietary: f.dietary,
+      time: f.time,
+      ingredients: ingr,  // can be empty array
+    });
 
-    // dietary filter
-    if (activeFilters.dietary) {
-      list = list.filter((r) =>
-        r.dietary.includes(activeFilters.dietary)
-      );
-    }
+    setRecipes(results);
+  } catch (err) {
+    console.error(err);
+    setError(
+      err.message || "Something went wrong while fetching recipes."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+  const location = useLocation();
 
-    // level filter
-    if (activeFilters.level) {
-      list = list.filter((r) => r.level === activeFilters.level);
-    }
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
 
-    // time filter
-    if (activeFilters.time) {
-      list = list.filter((r) => r.time === activeFilters.time);
-    }
+    const initialFilters = {
+      cuisine: params.get("cuisine") || "",
+      dietary: params.get("dietary") || "",
+      level: params.get("level") || "",
+      time: params.get("time") || "",
+    };
 
-    return list;
+    const initialQuery = params.get("q") || "";
+
+    const ingredientsParam = params.get("ingredients");       // ⬅ NEW
+    const initialIngredients = ingredientsParam
+      ? ingredientsParam.split(",")
+      : [];
+
+    const hasAny =
+      initialQuery ||
+      initialFilters.cuisine ||
+      initialFilters.dietary ||
+      initialFilters.time ||
+      initialFilters.level ||
+      initialIngredients.length > 0;                          // ⬅ UPDATED
+
+    if (!hasAny) return;
+
+    setFilters(initialFilters);
+    setQuery(initialQuery);
+    setIngredients(initialIngredients);                       // ⬅ NEW
+
+    fetchRecipes({
+      query: initialQuery,
+      filters: initialFilters,
+      ingredients: initialIngredients,                        // ⬅ NEW
+    });
+  }, [location.search]);
+
+  const handleSearch = (newQuery) => {
+    setQuery(newQuery);
+    fetchRecipes({ query: newQuery, filters });
   };
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
-    setLoading(true);
-    const filtered = applyAllFilters(MOCK_RECIPES, newFilters, query);
-    setRecipes(filtered);
-    setLoading(false);
+    fetchRecipes({ query, filters: newFilters });
   };
 
   const handleResetFilters = () => {
-    const base = { cuisine: '', dietary: '', level: '', time: '' };
-    setFilters(base);
-    setLoading(true);
-    const filtered = applyAllFilters(MOCK_RECIPES, base, query);
-    setRecipes(filtered);
-    setLoading(false);
-  };
-
-  const handleSearch = (q) => {
-    setQuery(q);
-    setLoading(true);
-    const filtered = applyAllFilters(MOCK_RECIPES, filters, q);
-    setRecipes(filtered);
-    setLoading(false);
+    const reset = {
+      cuisine: "",
+      dietary: "",
+      level: "",
+      time: "",
+    };
+    setFilters(reset);
+    fetchRecipes({ query, filters: reset });
   };
 
   return (
@@ -129,6 +111,7 @@ export const SearchContainer = () => {
       onSearch={handleSearch}
       recipes={recipes}
       loading={loading}
+      error={error}
     />
   );
 };
