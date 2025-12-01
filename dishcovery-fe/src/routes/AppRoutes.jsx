@@ -13,6 +13,8 @@ import { GuidedCookingPage } from '../pages/GuidedCookingPage';
 import { FaqPage } from '../pages/FaqPage';
 import { ProfileContainer } from '../containers/ProfileContainer';
 import { ContactContainer } from '../containers/ContactContainer';
+import { FavouritesContainer } from '../containers/FavouriteContainer';
+import { RecentlyCookedContainer } from '../containers/RecentlyCooked';
 
 
 
@@ -25,11 +27,14 @@ export const AppRoutes = () => (
     <Route path="/login" element={<LoginContainer />} />
     <Route path="/search" element={<SearchContainer />} />
     <Route path="/recipe/:id" element={<RecipeContainer />} />
-    <Route path="/recipe/:id/steps" element={<CookingStepsPage  />} />
+    <Route path="/recipe/:id/steps" element={<CookingStepsPage />} />
     <Route path="/recipe/:id/guided" element={<GuidedCookingPage />} />
     <Route path="/faq" element={<FaqPage />} />
     <Route path="/profile" element={<ProfileContainer />} />
     <Route path="/contact" element={<ContactContainer />} />
+    <Route path="/favourites" element={<FavouritesContainer />} />
+    <Route path="/recently-cooked" element={<RecentlyCookedContainer />} />
+
 
 
   </Routes>
