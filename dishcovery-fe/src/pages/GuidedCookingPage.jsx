@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRecipeById } from "../api/spoonacularApi";
+import { BackButton } from "../components/common/BackButton.jsx";
 
 export const GuidedCookingPage = () => {
   const { id } = useParams();
@@ -10,6 +11,7 @@ export const GuidedCookingPage = () => {
   const [recipe, setRecipe] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,10 +25,8 @@ export const GuidedCookingPage = () => {
         setError(null);
         const data = await getRecipeById(id);
         setRecipe(data);
-
         if (data.steps && data.steps.length > 0) {
           setCurrentIndex(0);
-          setSecondsLeft(data.steps[0].durationSeconds || 60);
         }
       } catch (err) {
         console.error(err);
@@ -41,6 +41,11 @@ export const GuidedCookingPage = () => {
     fetchRecipe();
   }, [id]);
 
+  const getStepDuration = (index) => {
+    if (!recipe || !recipe.steps || !recipe.steps[index]) return 60;
+    return recipe.steps[index].durationSeconds || 60;
+  };
+
   // Timer logic
   useEffect(() => {
     if (!recipe || !recipe.steps || recipe.steps.length === 0) return;
@@ -48,7 +53,7 @@ export const GuidedCookingPage = () => {
     const currentStep = recipe.steps[currentIndex];
     if (!currentStep) return;
 
-    if (secondsLeft <= 0) return;
+    if (secondsLeft <= 0 || paused) return;
 
     const intervalId = setInterval(() => {
       setSecondsLeft((prev) => {
@@ -61,7 +66,15 @@ export const GuidedCookingPage = () => {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [recipe, currentIndex, secondsLeft]);
+  }, [recipe, currentIndex, secondsLeft, paused]);
+
+  // Reset timer when recipe loads or step changes
+  useEffect(() => {
+    if (!recipe || !recipe.steps || recipe.steps.length === 0) return;
+    const duration = getStepDuration(currentIndex);
+    setSecondsLeft(duration);
+    setPaused(false);
+  }, [recipe, currentIndex]);
 
   const handleNextStep = () => {
     if (!recipe || !recipe.steps) return;
@@ -69,11 +82,19 @@ export const GuidedCookingPage = () => {
     if (currentIndex < recipe.steps.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-      setSecondsLeft(recipe.steps[nextIndex].durationSeconds || 60);
     } else {
       // finished
       navigate(`/recipe/${id}`);
     }
+  };
+
+  const handlePauseToggle = () => {
+    setPaused((prev) => !prev);
+  };
+
+  const handleRestartTimer = () => {
+    setSecondsLeft(getStepDuration(currentIndex));
+    setPaused(false);
   };
 
   const formatTime = (totalSeconds) => {
@@ -94,9 +115,7 @@ export const GuidedCookingPage = () => {
     return (
       <div className="guided-page">
         <p className="error-text">{error}</p>
-        <button className="btn-primary" onClick={() => navigate(-1)}>
-          Go Back
-        </button>
+        <BackButton onClick={() => navigate(-1)} iconOnly ariaLabel="Go back" />
       </div>
     );
   }
@@ -114,13 +133,18 @@ export const GuidedCookingPage = () => {
   return (
     <div className="guided-page">
       <header className="guided-header">
-        <button className="btn-link" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-        <h1 className="guided-title">{recipe.title}</h1>
-        <p className="guided-subtitle">
-          Step {currentIndex + 1} of {recipe.steps.length}
-        </p>
+        <BackButton
+          onClick={() => navigate(-1)}
+          className="back-button--inline"
+          iconOnly
+          ariaLabel="Back to recipe overview"
+        />
+        <div className="guided-heading-group">
+          <h1 className="guided-title">{recipe.title}</h1>
+          <p className="guided-subtitle">
+            Step {currentIndex + 1} of {recipe.steps.length}
+          </p>
+        </div>
       </header>
 
       <section className="guided-body">
@@ -134,11 +158,30 @@ export const GuidedCookingPage = () => {
         </div>
 
         <div className="guided-right">
-          <div className="guided-timer">{formatTime(secondsLeft)}</div>
+          <div className="guided-timer-card">
+            <p className="guided-timer-label">Timer</p>
+            <div className="guided-timer">{formatTime(secondsLeft)}</div>
+            <p className="guided-timer-status">
+              {paused ? "Paused" : "Counting down"}
+            </p>
+            <div className="guided-timer-actions">
+              <button className="btn-secondary" onClick={handlePauseToggle}>
+                {paused ? "Resume" : "Pause"}
+              </button>
+              <button className="btn-secondary" onClick={handleRestartTimer}>
+                Restart
+              </button>
+            </div>
+          </div>
 
-          <button className="btn-dark guided-next-btn" onClick={handleNextStep}>
-            {currentIndex < recipe.steps.length - 1 ? "Next step" : "Finish"}
-          </button>
+          <div className="guided-next-wrapper">
+            <button
+              className="btn-dark guided-next-btn"
+              onClick={handleNextStep}
+            >
+              {currentIndex < recipe.steps.length - 1 ? "Next step" : "Finish"}
+            </button>
+          </div>
         </div>
       </section>
     </div>

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRecipeById } from "../api/spoonacularApi";
+import { BackButton } from "../components/common/BackButton.jsx";
 
 export const CookingStepsPage = () => {
   const { id } = useParams();
@@ -38,9 +39,7 @@ export const CookingStepsPage = () => {
     return (
       <div className="cooking-page">
         <p className="error-text">{error}</p>
-        <button className="btn-primary" onClick={() => navigate(-1)}>
-          Go Back
-        </button>
+        <BackButton onClick={() => navigate(-1)} iconOnly ariaLabel="Go back" />
       </div>
     );
   }
@@ -55,23 +54,20 @@ export const CookingStepsPage = () => {
 
   return (
     <div className="cooking-page">
+      <div className="page-back-row">
+        <BackButton
+          onClick={() => navigate(-1)}
+          iconOnly
+          ariaLabel="Back to recipe overview"
+        />
+      </div>
       <h1 className="cooking-title">Cooking Steps</h1>
 
       <div className="cooking-steps-wrapper">
         {recipe.steps.map((step, index) => (
           <div key={step.id || index} className="cooking-step-card">
-            <div className="cooking-step-header">
-              <span className="cooking-step-number">
-                Step {index + 1}
-              </span>
-              {step.durationSeconds && (
-                <span className="cooking-step-duration">
-                  ~{Math.round(step.durationSeconds / 60)} min
-                </span>
-              )}
-            </div>
             <h3>
-              <strong>Step {index + 1}:</strong> {step.title}
+              <strong>Step {index + 1}:</strong>
             </h3>
             <ul className="cooking-step-list">
               {step.instructions.map((line, i) => (
