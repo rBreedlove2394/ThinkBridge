@@ -1,12 +1,12 @@
 // src/containers/RegisterContainer.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RegisterPage } from '../pages/RegisterPage';
 import { useAuth } from '../context/AuthContext';
 
 export const RegisterContainer = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, isAuthenticated } = useAuth();
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -16,6 +16,12 @@ export const RegisterContainer = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));

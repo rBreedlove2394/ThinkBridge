@@ -9,6 +9,8 @@ export const LoginPage = ({
   onSubmit,
   onForgotPassword,
 }) => {
+  const handleForgot = onForgotPassword || (() => {});
+
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -54,13 +56,15 @@ export const LoginPage = ({
           </button>
         </form>
 
-        <button
-          type="button"
-          className="auth-secondary-link"
-          onClick={onForgotPassword}
-        >
-          Forgot password?
-        </button>
+        {onForgotPassword && (
+          <button
+            type="button"
+            className="auth-secondary-link"
+            onClick={handleForgot}
+          >
+            Forgot password?
+          </button>
+        )}
       </div>
     </div>
   );

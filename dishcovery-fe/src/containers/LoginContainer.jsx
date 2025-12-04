@@ -1,5 +1,5 @@
 // src/containers/LoginContainer.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LoginPage } from "../pages/LoginPage"; // your existing UI component
@@ -14,6 +14,12 @@ export const LoginContainer = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -46,6 +52,7 @@ export const LoginContainer = () => {
       error={error}
       loading={loading}
       isAuthenticated={isAuthenticated}
+      onForgotPassword={() => navigate("/register")}
     />
   );
 };

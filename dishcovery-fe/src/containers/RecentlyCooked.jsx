@@ -1,15 +1,22 @@
 // src/containers/FavouritesContainer.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { RecentlyCookedPage } from "../pages/RecentlyCookedPage";
-import { MOCK_RECIPES } from "../mock/recipes";
+import { getRecentlyCookedForUser } from "../utils/recentlyCookedStorage";
 
 export const RecentlyCookedContainer = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const [recentlyCooked, setRecentlyCooked] = useState([]);
 
-  const favourites = MOCK_RECIPES.filter((r) => r.isFavourite);
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      setRecentlyCooked(getRecentlyCookedForUser(user.email));
+    } else {
+      setRecentlyCooked([]);
+    }
+  }, [isAuthenticated, user]);
   
   const handleRecipeClick = (recipe) => {
     navigate(`/recipe/${recipe.id}`);
@@ -17,7 +24,7 @@ export const RecentlyCookedContainer = () => {
 
   return (
     <RecentlyCookedPage
-      favourites={favourites}
+      recipes={recentlyCooked}
       isAuthenticated={isAuthenticated}
       onRecipeClick={handleRecipeClick}
     />

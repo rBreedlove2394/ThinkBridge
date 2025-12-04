@@ -4,6 +4,40 @@ import { loginUser, registerUser } from "../api/authApi";
 const AuthContext = createContext(null);
 const STORAGE_KEY = "dishcovery_auth";
 
+const parseAuthPayload = (response = {}, fallbackUser = null) => {
+  const payload = response.data || response;
+
+  const token =
+    payload?.token ||
+    payload?.accessToken ||
+    payload?.jwt ||
+    payload?.data?.token ||
+    null;
+
+  const user =
+    payload?.user ||
+    payload?.data?.user ||
+    payload?.profile ||
+    fallbackUser;
+
+  return { user, token };
+};
+
+const getErrorMessage = (err, defaultMessage) => {
+  if (!err) return defaultMessage;
+
+  if (err.body) {
+    try {
+      const parsed = JSON.parse(err.body);
+      return parsed?.message || parsed?.error || err.body || defaultMessage;
+    } catch {
+      return err.body || defaultMessage;
+    }
+  }
+
+  return err.message || defaultMessage;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -24,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   // persist auth state
   useEffect(() => {
-    const payload = user ? { user, token } : null;
+    const payload = user ? { user, token: token || null } : null;
     if (payload) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } else {
@@ -35,12 +69,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await loginUser({ email, password });
-      const authUser =
-        response.user || {
-          email,
-          name: response.name || email.split("@")[0],
-        };
-      const authToken = response.token || response.accessToken || null;
+      const fallbackUser = {
+        email,
+        name: response?.name || email.split("@")[0],
+      };
+      const { user: authUser, token: authToken } = parseAuthPayload(
+        response,
+        fallbackUser
+      );
 
       setUser(authUser);
       setToken(authToken);
@@ -48,10 +84,10 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       console.error("Login failed", err);
-      const message =
-        err?.body ||
-        err?.message ||
-        "Unable to sign in. Please check your credentials.";
+      const message = getErrorMessage(
+        err,
+        "Unable to sign in. Please check your credentials."
+      );
       return { success: false, message };
     }
   };
@@ -66,12 +102,14 @@ export const AuthProvider = ({ children }) => {
       });
 
       // Some APIs return user + token on signup. If so, auto-login.
-      const authUser =
-        response.user || {
-          email,
-          name: `${firstName || ""} ${lastName || ""}`.trim() || email,
-        };
-      const authToken = response.token || response.accessToken || null;
+      const fallbackUser = {
+        email,
+        name: `${firstName || ""} ${lastName || ""}`.trim() || email,
+      };
+      const { user: authUser, token: authToken } = parseAuthPayload(
+        response,
+        fallbackUser
+      );
 
       if (authToken) {
         setUser(authUser);
@@ -81,8 +119,10 @@ export const AuthProvider = ({ children }) => {
       return { success: true, autoLoggedIn: !!authToken };
     } catch (err) {
       console.error("Signup failed", err);
-      const message =
-        err?.body || err?.message || "Unable to create account right now.";
+      const message = getErrorMessage(
+        err,
+        "Unable to create account right now."
+      );
       return { success: false, message };
     }
   };
@@ -92,6 +132,10 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
   };
 
+  const updateUser = (updates = {}) => {
+    setUser((prev) => ({ ...(prev || {}), ...updates }));
+  };
+
   const value = {
     user,
     token,
@@ -99,6 +143,7 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

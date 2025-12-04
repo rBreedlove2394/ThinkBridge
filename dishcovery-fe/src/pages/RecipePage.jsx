@@ -3,7 +3,15 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BackButton } from "../components/common/BackButton.jsx";
 
-export const RecipePage = ({ recipe, loading, error }) => {
+export const RecipePage = ({
+  recipe,
+  loading,
+  error,
+  isFavourite = false,
+  onToggleFavourite,
+  onMarkCooked,
+  isCooked = false,
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -73,11 +81,31 @@ export const RecipePage = ({ recipe, loading, error }) => {
           <div className="recipe-detail-left">
             <h1 className="recipe-title">{title}</h1>
 
-            <div className="recipe-meta">
-              {time && <span>{time}</span>}
-              {servings && <span>{servings} servings</span>}
-              {calories != null && <span>{calories} kcal</span>}
-              {cuisine && <span>{cuisine}</span>}
+            <div className="recipe-fav-row">
+              <div className="recipe-meta">
+                {time && <span>{time}</span>}
+                {servings && <span>{servings} servings</span>}
+                {calories != null && <span>{calories} kcal</span>}
+                {cuisine && <span>{cuisine}</span>}
+              </div>
+
+              <div className="recipe-action-stack">
+                <button
+                  type="button"
+                  className={`fav-toggle ${isFavourite ? "is-fav" : ""}`}
+                  onClick={onToggleFavourite}
+                >
+                  {isFavourite ? "★ Favourited" : "☆ Add to favourites"}
+                </button>
+                <button
+                  type="button"
+                  className="cook-toggle"
+                  onClick={onMarkCooked}
+                  disabled={isCooked}
+                >
+                  {isCooked ? "Cook again" : "Mark as cooked"}
+                </button>
+              </div>
             </div>
 
             {dietary && dietary.length > 0 && (
@@ -144,6 +172,7 @@ export const RecipePage = ({ recipe, loading, error }) => {
             Guided Cooking
           </button>
         </div>
+
       </section>
 
       

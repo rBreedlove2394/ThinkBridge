@@ -1,11 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export const RecipeCard = ({ id, title, calories, imageUrl }) => {
-
+export const RecipeCard = ({ id, title, calories, imageUrl, onClick }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
     navigate(`/recipe/${id}`);
   };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect, useRef } from 'react';
 
 const dietaryOptions = ['None', 'Vegetarian', 'Vegan', 'Gluten-free'];
 const skillLevels = ['Beginner', 'Intermediate', 'Advanced'];
@@ -10,7 +11,20 @@ export const ProfilePage = ({
   onCancel,
   onSave,
   saving,
+  status,
+  editableFields = {},
+  onEnableEdit = () => {},
 }) => {
+  const inputRefs = useRef({});
+
+  useEffect(() => {
+    Object.entries(editableFields).forEach(([field, isEditable]) => {
+      if (isEditable) {
+        inputRefs.current[field]?.focus();
+      }
+    });
+  }, [editableFields]);
+
   return (
     <div className="profile-page">
       <h1 className="profile-title">Profile</h1>
@@ -37,9 +51,20 @@ export const ProfilePage = ({
                 id="firstName"
                 type="text"
                 value={profile.firstName}
+                readOnly={!editableFields.firstName}
+                ref={(el) => {
+                  inputRefs.current.firstName = el;
+                }}
                 onChange={(e) => onChange('firstName', e.target.value)}
               />
-              <span className="profile-input-icon">✏️</span>
+              <button
+                type="button"
+                className="profile-input-icon"
+                onClick={() => onEnableEdit('firstName')}
+                aria-label="Edit first name"
+              >
+                ✎
+              </button>
             </div>
           </div>
 
@@ -53,9 +78,20 @@ export const ProfilePage = ({
                 id="lastName"
                 type="text"
                 value={profile.lastName}
+                readOnly={!editableFields.lastName}
+                ref={(el) => {
+                  inputRefs.current.lastName = el;
+                }}
                 onChange={(e) => onChange('lastName', e.target.value)}
               />
-              <span className="profile-input-icon">✏️</span>
+              <button
+                type="button"
+                className="profile-input-icon"
+                onClick={() => onEnableEdit('lastName')}
+                aria-label="Edit last name"
+              >
+                ✎
+              </button>
             </div>
           </div>
 
@@ -69,9 +105,20 @@ export const ProfilePage = ({
                 id="email"
                 type="email"
                 value={profile.email}
+                readOnly={!editableFields.email}
+                ref={(el) => {
+                  inputRefs.current.email = el;
+                }}
                 onChange={(e) => onChange('email', e.target.value)}
               />
-              <span className="profile-input-icon">✏️</span>
+              <button
+                type="button"
+                className="profile-input-icon"
+                onClick={() => onEnableEdit('email')}
+                aria-label="Edit email"
+              >
+                ✎
+              </button>
             </div>
           </div>
         </div>
@@ -81,7 +128,6 @@ export const ProfilePage = ({
           <div className="profile-preference-group">
             <p className="profile-preference-label">Edit Dietary Options</p>
             <div className="profile-select-pill">
-              <span className="profile-select-icon">🧱</span>
               <select
                 value={profile.dietaryOption}
                 onChange={(e) => onChange('dietaryOption', e.target.value)}
@@ -99,7 +145,6 @@ export const ProfilePage = ({
           <div className="profile-preference-group">
             <p className="profile-preference-label">Edit skill level</p>
             <div className="profile-select-pill">
-              <span className="profile-select-icon">🧱</span>
               <select
                 value={profile.skillLevel}
                 onChange={(e) => onChange('skillLevel', e.target.value)}
@@ -115,9 +160,8 @@ export const ProfilePage = ({
           </div>
 
           <div className="profile-preference-group">
-            <p className="profile-preference-link">Edit serving size</p>
+            <p className="profile-preference-label">Serving size</p>
             <div className="profile-select-pill">
-              <span className="profile-select-icon">🧱</span>
               <select
                 value={profile.servingSize}
                 onChange={(e) => onChange('servingSize', e.target.value)}
@@ -152,6 +196,8 @@ export const ProfilePage = ({
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </section>
+
+      {status && <p className="profile-status">{status}</p>}
     </div>
   );
 };

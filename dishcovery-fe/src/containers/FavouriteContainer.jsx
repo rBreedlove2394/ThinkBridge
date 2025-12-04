@@ -1,15 +1,22 @@
 // src/containers/FavouritesContainer.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FavouritesPage } from "../pages/FavouritesPage";
-import { MOCK_RECIPES } from "../mock/recipes";
+import { getFavouritesForUser } from "../utils/favouritesStorage";
 
 export const FavouritesContainer = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const [favourites, setFavourites] = useState([]);
 
-  const favourites = MOCK_RECIPES.filter((r) => r.isFavourite);
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      setFavourites(getFavouritesForUser(user.email));
+    } else {
+      setFavourites([]);
+    }
+  }, [isAuthenticated, user]);
   
   const handleRecipeClick = (recipe) => {
     navigate(`/recipe/${recipe.id}`);

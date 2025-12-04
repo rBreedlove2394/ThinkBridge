@@ -32,9 +32,14 @@ export const Navbar = () => {
         <header className="navbar">
             {/* Left: Logo */}
             <div className="navbar-left">
-                <div className="logo-pill">
+                <button
+                    className="logo-pill"
+                    type="button"
+                    onClick={() => navigate('/')}
+                    aria-label="Go to home"
+                >
                     <img src={Logo} alt="Dishcovery Logo" className="nav-logo" />
-                </div>
+                </button>
             </div>
 
 

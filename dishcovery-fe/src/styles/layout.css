@@ -335,6 +335,7 @@
 .user-name {
   font-size: 0.9rem;
   font-weight: 600;
+  color: #111827;
 }
 
 .user-bio {
@@ -1281,6 +1282,11 @@
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
+.profile-input-pill input[readonly] {
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
 .profile-input-pill input {
   border: none;
   outline: none;
@@ -1291,6 +1297,10 @@
 
 .profile-input-icon {
   font-size: 1rem;
+  color: #111827;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 /* right preferences */
@@ -1313,8 +1323,8 @@
 
 .profile-preference-link {
   font-size: 0.85rem;
-  color: #4b4bff;
-  text-decoration: underline;
+  color: #6b7280;
+  text-decoration: none;
 }
 
 /* select pill */
@@ -1326,10 +1336,6 @@
   padding: 0.55rem 0.9rem;
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
   border: 1px solid #111827;
-}
-
-.profile-select-icon {
-  margin-right: 0.5rem;
 }
 
 .profile-select-pill select {
@@ -1359,6 +1365,13 @@
 }
 
 /* reuse .btn-dark from earlier for look */
+
+.profile-status {
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: #065f46;
+}
 
 
 /* Contact page tweaks – reuse auth styles */
@@ -1451,6 +1464,21 @@
   margin-bottom: 0.5rem;
 }
 
+.recipe-fav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.recipe-action-stack {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
 .recipe-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1460,11 +1488,60 @@
   color: #6b7280;
 }
 
+.fav-toggle {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 180px;
+  text-align: center;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+
+.fav-toggle.is-fav {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+.fav-toggle:hover {
+  transform: translateY(-1px);
+}
+
+.cook-toggle {
+  background: transparent;
+  color: #111827;
+  border: 1px solid #111827;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 160px;
+  text-align: center;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+
+.cook-toggle:hover {
+  background: #111827;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.cook-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .recipe-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin-bottom: 1rem;
+  margin-top: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .recipe-tag {
@@ -1514,6 +1591,12 @@
   margin-top: 2rem;
   display: flex;
   gap: 1rem;
+}
+
+.favourite-status {
+  margin-top: 0.75rem;
+  font-weight: 600;
+  color: #065f46;
 }
 
 /* Responsive: stack columns on smaller screens */
